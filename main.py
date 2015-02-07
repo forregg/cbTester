@@ -1,25 +1,72 @@
+from datetime import date
+
 from tester import Tester
-from strategy import Strategy
 from quotesFromCsv import loadData
 from instrument import Instrument
+from mr import Mr
 
 
-class MyStrategy(Strategy):
-    def onBar(self, bar):print bar[0]
+startTest = date(2010, 1, 1)
+stopTest = date(2012, 1, 1)
+
+#data = quotesFromDS.loadData('D:\\GLOBALDATABASE\\COMMON\\RAWDATA\\Dukascopy\\1MIN\\FOREX\\AUDNZD_1.csv')
+#data = data[:, [0, 1, 2, 3, 4, 6, 7, 8, 9]]
+
+#data = loadData('c:\\eurusd_1.csv')
+#data = loadData('c:\\nzdusd_1m.csv')
+
+data = loadData('c:\\eurusd_1m_20_03_2014.csv')
+
+#for i in range(-5,6,1):
+#    strategyParams = {'pOptimization': True, 'pShift': i}
+#    tester = Tester([Instrument('audcad', data)], pcTests, strategyParams, True)
+
+opt = False
+
+#tester = Tester([Instrument('eurusd', data)], t, [], False)
+
+if opt == True:
+    for opt in range(4, 8, 1):
+        strategyParams = {'pOptimization': True, 'pOpt':opt}
+        tester = Tester([Instrument('eurusd', data)], Mr, strategyParams, True)
+else:
+    strategyParams = {'pOptimization': False}
+    tester = Tester([Instrument('eurusd', data)], Mr, strategyParams, True)
+#print data
+#pcTests.run(data)
+
+#data = [Instrument('eurusd', data)]
+
+
+#!for opt in range(14, 74, 15):
+#!    strategyParams = {'pExitMinute': opt, 'pOptimization': True}
+#!    tester = Tester(data, t, strategyParams)
+
+#strategyParams = {'pOptimization': False}
+#tester = Tester(data, t, strategyParams)
+
+
+#from multiprocessing import Process
+#if __name__ == '__main__':
+#    for exitMinute in range(55, 60, 1):
+#        strategyParams = {'pOptimization': True,'pExitMinute': exitMinute}
+        #tester = Tester(data, t, strategyParams)
+        #th = threading.Thread(name='th'+str(exitMinute), target=Tester, args=(data, t, strategyParams))
+        #th.start()
+
+ #       p = Process(target=Tester, args=(data, t, strategyParams))
+ #       p.start()
+        #p.join()
 
 
 
-class Bar:
-    def __init__(self, t, ob, hb, lb, cb, oa, ha, la, ca, v):
-        self.t, self.ob, self.hb, self.lb, self.cb, self.oa, self.ha, self.la, self.ca, self.v = t, ob, hb, lb, cb, oa, ha, la, ca, v
 
-data = [Instrument('nzdusd', loadData('c:\\nzdusd_1m.csv')),
-    Instrument('audusd', loadData('c:\\audusd_1m.csv'))]
+#dates = data[:, 0]
+#tate = dates[dates>startTest]
+#print tate
+#data = data[:, startTest > data[0, :] > startTest]
 
-tester = Tester(data, MyStrategy)
-tester.start()
-#tester = Tester(MyStrategy2)
+#data = [Instrument('nzdusd', data)]
 
-ASAS..
+#tester = Tester(data, movX)
 
-asAS
