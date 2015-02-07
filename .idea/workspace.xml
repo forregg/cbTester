@@ -4,20 +4,7 @@
     <bookmark url="file://$PROJECT_DIR$/tester.py" line="247" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" readonly="true" id="b5a92df9-f306-4cf8-9658-2c306e9a923e" name="Default" comment="&#10;">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/break20.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/forexSessions.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/mr.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pairsMeanRevResearch.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/trade.py" />
-      <change type="DELETED" beforePath="C:\Python Projects\cbTester\.idea\inspectionProfiles\profiles_settings.xml" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/cbTester.iml" afterPath="$PROJECT_DIR$/.idea/cbTester.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/instrument.py" afterPath="$PROJECT_DIR$/instrument.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.py" afterPath="$PROJECT_DIR$/main.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/quotesFromCsv.py" afterPath="$PROJECT_DIR$/quotesFromCsv.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/strategy.py" afterPath="$PROJECT_DIR$/strategy.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tester.py" afterPath="$PROJECT_DIR$/tester.py" />
+    <list default="true" readonly="true" id="b5a92df9-f306-4cf8-9658-2c306e9a923e" name="Default" comment="1-st&#10;">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -221,10 +208,10 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="recentsLimit" value="5" />
-    <property name="options.lastSelected" value="vcs.Git" />
+    <property name="options.lastSelected" value="project.propVCSSupport.Mappings" />
     <property name="SearchEverywhereHistory" value="" />
     <property name="restartRequiresConfirmation" value="true" />
-    <property name="last_opened_file_path" value="C:/Program Files (x86)/Git/bin/git.exe" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="FullScreen" value="false" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
@@ -606,7 +593,11 @@
       <created>1423335347131</created>
       <updated>1423335347131</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="1-st&#10;">
+      <created>1423338087744</created>
+      <updated>1423338087744</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -691,9 +682,11 @@
     <option name="myTodoPanelSettings">
       <TodoPanelSettings />
     </option>
+    <option name="CHECK_COMMIT_MESSAGE_SPELLING" value="false" />
     <option name="SHOW_VCS_ERROR_NOTIFICATIONS" value="false" />
     <MESSAGE value="&#10;" />
-    <option name="LAST_COMMIT_MESSAGE" value="&#10;" />
+    <MESSAGE value="1-st&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value="1-st&#10;" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
