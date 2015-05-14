@@ -7,10 +7,14 @@ import matplotlib.pyplot as plt
 from forexSessions import *
 from scipy import stats
 import calendar
+from datetime import timedelta
 class Mr(Strategy):
 #params
 
     def __init__(self, engine, params):
+
+        self.name = 'mr'
+
         self.engine = engine
 
         self.lotSizeInUSD = 1000000
@@ -21,7 +25,10 @@ class Mr(Strategy):
             if 'pOpt' in params:
                 self.pOpt = params['pOpt']
 
-        getInstrumentStat(engine)
+        #getInstrumentStat(engine)
+
+    def onStart(self):
+        """not implemented yet"""
 
     def getWSMATarget(self, bars):
         WSMA = 0
@@ -57,6 +64,14 @@ class Mr(Strategy):
 
 
     def onBar(self, bar):
+        """
+        print bar[11]
+        print self.engine.getHistoryBars(bar[11], 2, 0)
+        positions = self.engine.getPositions()
+        for p in positions:
+            print p.order
+            self.engine.closePosition(p)
+        """
         if bar[0].date() < datetime.date(year=2008, month=02, day=1):
             return
 #        if bar[0].minute not in [14,29,44,59]:#11.45-12.45
@@ -68,12 +83,19 @@ class Mr(Strategy):
         """if get15minBarNum(bar[0]) not in [50,51,52,53]:#range(47,52):#12.00-12.15
             return
 
-        if len(self.engine.getPositions()) > 0:
-            for p in self.engine.getPositions():
-                if bar[0].hour*60+bar[0].minute-p.order.openTime.hour*60-p.order.openTime.minute > 30:
-                    if (bar[4] - p.order.price) * p.order.orderType < 0:
-                        self.engine.closePosition(p, bar)
+
         """
+
+        positionTimeStop = 67
+        positionTimeStop = timedelta(minutes=positionTimeStop)
+
+        positions = self.engine.getPositions()
+        if len(positions) > 0:
+            for p in reversed(positions):
+                if p.openTime + positionTimeStop >= bar[0]:
+                    self.engine.closePosition(p)
+
+
 
         if get15minBarNum(bar[0]) not in [50]:#range(47,52):#12.00-12.15
             return
@@ -120,7 +142,7 @@ class Mr(Strategy):
                         return
                     if stats.percentileofscore(historyPC, pcHigh - pcLow) < 40 or stats.percentileofscore(historyPC, pcHigh - pcLow) > 90:
                         return
-                self.engine.sendOrder(Order(1, bar[4], 0, 0, 1, 0, holdBars, market=True), bar)#pcLow + (pcHigh-pcLow)/2
+                self.engine.sendOrder(Order(1, bar[4], 0, 0, 1, 0, 0, market=True, instrument=bar[11]), bar)#pcLow + (pcHigh-pcLow)/2
             if percentOfRange > 0.95:
                 if f == True:
                     historyPC = pcPeroidSizeDecile(self.engine, 10, 60 * 8, bar)
@@ -128,7 +150,7 @@ class Mr(Strategy):
                         return
                     if stats.percentileofscore(historyPC, pcHigh - pcLow) < 40 or stats.percentileofscore(historyPC, pcHigh - pcLow) > 90:
                         return
-                self.engine.sendOrder(Order(-1, bar[4], 0, 0, 1, 0, holdBars, market=True), bar)#pcLow + (pcHigh-pcLow)/2
+                self.engine.sendOrder(Order(-1, bar[4], 0, 0, 1, 0, 0, market=True, instrument=bar[11]), bar)#pcLow + (pcHigh-pcLow)/2
 
         """if len(self.engine.getPositions()) == 1:
             if percentOfRange < 0.05:

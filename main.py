@@ -4,6 +4,12 @@ from tester import Tester
 from quotesFromCsv import loadData
 from instrument import Instrument
 from mr import Mr
+from dukascopyEngine import DukascopyEngine
+
+
+
+#strategyParams = {'pOptimization': False}
+#engine = DukascopyEngine(['EUR/USD'], '1 Min', Mr, strategyParams, True)
 
 
 startTest = date(2010, 1, 1)
@@ -15,7 +21,7 @@ stopTest = date(2012, 1, 1)
 #data = loadData('c:\\eurusd_1.csv')
 #data = loadData('c:\\nzdusd_1m.csv')
 
-data = loadData('c:\\eurusd_1m_20_03_2014.csv')
+data = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_1m_20_03_2014.csv')
 
 #for i in range(-5,6,1):
 #    strategyParams = {'pOptimization': True, 'pShift': i}
@@ -28,10 +34,10 @@ opt = False
 if opt == True:
     for opt in range(4, 8, 1):
         strategyParams = {'pOptimization': True, 'pOpt':opt}
-        tester = Tester([Instrument('eurusd', data)], Mr, strategyParams, True)
+        tester = Tester([Instrument('EUR/USD', data)], Mr, strategyParams, True)
 else:
     strategyParams = {'pOptimization': False}
-    tester = Tester([Instrument('eurusd', data)], Mr, strategyParams, True)
+    tester = Tester([Instrument('EUR/USD', data)], Mr, strategyParams, True)
 #print data
 #pcTests.run(data)
 
