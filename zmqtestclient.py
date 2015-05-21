@@ -135,6 +135,8 @@ def getHistoryBars():
         print bars
 sendOrder()
 
+#
+
 #closeOrder()
 #getOrders()
 #getPositions()
