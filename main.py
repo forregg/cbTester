@@ -4,12 +4,91 @@ from tester import Tester
 from quotesFromCsv import loadData
 from instrument import Instrument
 from mr import Mr
+from testStrat import TestStrat
 from dukascopyEngine import DukascopyEngine
+from audnzdMRBoy import AudnzdMrBoy
+from stikiFrontrunEurUsdBoy1 import SF
+
+#engine = DukascopyEngine(['EUR/USD'], '1 Min', Mr)
+
+data = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_10sec_110516.csv')
+#data = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_1m_20_03_2014.csv')
+opt = False
+
+if opt == True:
+    for opt in range(1, 10, 1):
+        strategyParams = {'pOptimization': True, 'pOpt':opt}
+        tester = Tester([Instrument('EUR/USD', data)], SF, strategyParams, getStat=True)
+else:
+    strategyParams = {'pOptimization': False}
+    tester = Tester([Instrument('EUR/USD', data)], SF, strategyParams, getStat=True)
+#tester = Tester([Instrument('USD/CAD', data)], UsdcadMr, getStat=True)
+exit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 #strategyParams = {'pOptimization': False}
 #engine = DukascopyEngine(['EUR/USD'], '1 Min', Mr, strategyParams, True)
+
 
 
 startTest = date(2010, 1, 1)
@@ -21,23 +100,23 @@ stopTest = date(2012, 1, 1)
 #data = loadData('c:\\eurusd_1.csv')
 #data = loadData('c:\\nzdusd_1m.csv')
 
-data = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_1m_20_03_2014.csv')
+data = loadData('/home/mage/PycharmProjects/cbTester/data/test_trimmed.csv')
 
 #for i in range(-5,6,1):
 #    strategyParams = {'pOptimization': True, 'pShift': i}
 #    tester = Tester([Instrument('audcad', data)], pcTests, strategyParams, True)
 
-opt = False
+opt = True
 
 #tester = Tester([Instrument('eurusd', data)], t, [], False)
 
-if opt == True:
-    for opt in range(4, 8, 1):
-        strategyParams = {'pOptimization': True, 'pOpt':opt}
-        tester = Tester([Instrument('EUR/USD', data)], Mr, strategyParams, True)
-else:
-    strategyParams = {'pOptimization': False}
-    tester = Tester([Instrument('EUR/USD', data)], Mr, strategyParams, True)
+#if opt == True:
+#    for opt in range(0, 10, 1):
+#        strategyParams = {'pOptimization': True, 'pOpt':opt}
+#        tester = Tester([Instrument('EUR/USD', data)], TestStrat, strategyParams, True)
+#else:
+#    strategyParams = {'pOptimization': False}
+#    tester = Tester([Instrument('EUR/USD', data)], TestStrat, strategyParams, True)
 #print data
 #pcTests.run(data)
 

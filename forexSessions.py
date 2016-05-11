@@ -37,6 +37,12 @@ class forexSessions():
         return False
 
     @staticmethod
+    def getCT(date, timeZone='GMT'):
+        tz = pytz.timezone(timeZone)
+        dt = tz.localize(date)
+        return dt.astimezone(pytz.timezone('US/Central'))
+
+    @staticmethod
     def isSummerTimeInLondon(time):
         if forexSessions.getUTCOffcet(time, 'Europe/London') == datetime.timedelta(hours=1):
             return True

@@ -3,6 +3,7 @@ import numpy as np
 from datetime import date, time, datetime
 from order import *
 from position import *
+from strategy import Strategy
 
 
 class DukascopyEngine():
@@ -17,6 +18,11 @@ class DukascopyEngine():
         self.slippage = 0
 
         self.start()
+
+    def __init__(self):
+    #    """for use getHistory without runing strategy"""
+        self.strategy = Strategy(self)
+
 
     def start(self):
         context = zmq.Context()
@@ -37,9 +43,11 @@ class DukascopyEngine():
             if self.period != (bar[0] + " " + bar[1]):
                 continue
 
-            bar[2] = datetime.fromtimestamp(float(bar[2]) / 1e3)
+            bar[2] = datetime.utcfromtimestamp(float(bar[2]) / 1e3)
             bar = np.array(bar)
             bar = bar[2:]
+            bar[1:11] = bar[1:11].astype(np.float32, copy=False)
+            bar[1:11] = np.around(bar[1:11].astype(np.double),5)
             self.strategy.onBar(bar)
         ###main bars loop#######################################
 
@@ -62,7 +70,7 @@ class DukascopyEngine():
             else:
                 type = "SELLLIMIT"
 
-        order = ['sendOrder', self.strategyClass.name, order.instrument, type, str(order).lot, str(order).price,
+        order = ['sendOrder', self.strategyClass.name, order.instrument, type, str(order.lot), str(order.price),
                  str(self.slippage), str(order.stop), str(order.target), str(order.timeStopTime)]
         command = '--'.join(order)
         socket.send(command)
@@ -150,9 +158,9 @@ class DukascopyEngine():
                         orderType = -1
                         market = False
 
-                    timeStopTime = datetime.fromtimestamp(float(positionString[7]) / 1e3)
-                    orderOpenTime = datetime.fromtimestamp(float(positionString[8]) / 1e3)
-                    positionOpenTime = datetime.fromtimestamp(float(positionString[9]) / 1e3)
+                    timeStopTime = datetime.utcfromtimestamp(float(positionString[7]) / 1e3)
+                    orderOpenTime = datetime.utcfromtimestamp(float(positionString[8]) / 1e3)
+                    positionOpenTime = datetime.utcfromtimestamp(float(positionString[9]) / 1e3)
 
                     positions.append(Position(
                         Order(instrument=positionString[1], orderType=orderType, market=market, lot=positionString[3],
@@ -161,24 +169,31 @@ class DukascopyEngine():
                         openTime=positionOpenTime))
             return positions
 
-    def getHistoryBars(self, instrument, barsBefore, shift, barsAfter=0, period='ONE_MIN'):
+    def getHistoryBars(self, instrument, barsBefore, shift, barsAfter=0, period='ONE_MIN', trimInstrument = False, filterWeekends = True):
         context = zmq.Context()
         socket = context.socket(zmq.REQ)
         socket.connect("tcp://127.0.0.1:43002")
         command = ['getHistory', self.strategy.name, instrument, period, str(barsBefore), str(shift),
-                   str(barsAfter)]  # command, strategyName, intrument, period, barsBefore, shift, barsAfter
+                   str(barsAfter), str(filterWeekends)]  # command, strategyName, intrument, period, barsBefore, shift, barsAfter
         command = '--'.join(command)
         socket.send(command)
         message = socket.recv()
 
         bars = []
 
+
         if message != '':
             barsStrings = message.split('-+-')
             for barStrings in barsStrings:
                 bar = barStrings.split('--')
-                bar[1] = datetime.fromtimestamp(float(bar[1]) / 1e3)
+
+                bar[1] = datetime.utcfromtimestamp(float(bar[1]) / 1e3)
                 bar = bar[1:]
+                bar = np.array(bar)
+                bar[1:11] = bar[1:11].astype(np.float32, copy=False)
+                bar[1:11] = np.around(bar[1:11].astype(np.double),5)
+                if trimInstrument == True:
+                    bar = bar[:11]
                 bars.append(bar)
             bars = np.array(bars)
 

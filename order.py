@@ -1,5 +1,5 @@
 class Order:
-    def __init__(self, orderType, price, stop, target, lot, instrument, timeStopTime = 0, positionTimeStopTime = 0, openTime = 0, active = True, market = False):
+    def __init__(self, instrument, orderType, price, stop, target, lot, timeStopTime = 0, positionTimeStopTime = 0, openTime = 0, active = True, market = False):
         self.orderType, self.price, self.stop, self.target, self.lot, self.timeStopTime, self.positionTimeStopTime, self.openTime, self.active =\
         orderType, price, stop, target, lot, timeStopTime, positionTimeStopTime, openTime, active
 

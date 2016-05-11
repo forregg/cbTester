@@ -133,11 +133,11 @@ def getHistoryBars():
 
         bars = np.array(bars)
         print bars
-sendOrder()
+#sendOrder()
 
 #
 
 #closeOrder()
 #getOrders()
 #getPositions()
-#getHistoryBars()
+getHistoryBars()

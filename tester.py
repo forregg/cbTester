@@ -9,6 +9,7 @@ import calendar
 
 class Tester():
     def __init__(self, data, strategyClass, strategyParams = None, getStat = False):
+        self.name = 'Tester'
         self.positions = []
         self.closedPositions = []
         self.orders = []
@@ -89,7 +90,7 @@ class Tester():
             if order.orderType == -1:
                 order.price = bar[4]
             else:
-                order.price = bar[8]
+                order.price = bar[9]
             position = Position(order, bar[0], self.slippage, self.randomizeSlippage, self.point, stat = [])
             if self.getStat:
                 position.stat = []
@@ -118,7 +119,7 @@ class Tester():
             if position.order.orderType == 1:
                 price = bar[4]
             else:
-                price = bar[8]
+                price = bar[9]
 
         self.positions.remove(position)
         if market:
@@ -141,7 +142,7 @@ class Tester():
             else:
                 self.positions[self.positions.index(position)].order.target = target
         else:
-            if target >= bar[8]:
+            if target >= bar[9]:
                 self.closePosition(position, bar, market=True)
             else:
                 self.positions[self.positions.index(position)].order.target = target
@@ -160,7 +161,7 @@ class Tester():
             if order.instrument != "" and order.instrument != bar[11]:
                 continue
             if order.orderType == 1:
-                if bar[7] <= order.price <= bar[6]:
+                if bar[8] <= order.price <= bar[7]:
                     self.openPosition(order, bar)
                     continue
             if order.orderType == -1:
@@ -177,7 +178,7 @@ class Tester():
                     self.closePosition(position, bar, position.order.target)
                     continue
             if position.order.orderType == -1:
-                if bar[7] <= position.order.target <= bar[6]:
+                if bar[8] <= position.order.target <= bar[7]:
                     self.closePosition(position, bar, position.order.target)
                     continue
 
@@ -190,7 +191,7 @@ class Tester():
                     self.closePosition(position, bar, position.order.stop, market = True)
                     continue
             if position.order.orderType == -1:
-                if bar[7] <= position.order.stop <= bar[6]:
+                if bar[8] <= position.order.stop <= bar[7]:
                     self.closePosition(position, bar, position.order.stop, market = True)
                     continue
 
@@ -211,7 +212,7 @@ class Tester():
                     self.closePosition(position, bar,  bar[4],market = True)
                     continue
                 if position.order.orderType == -1:
-                    self.closePosition(position, bar, bar[8], market = True)
+                    self.closePosition(position, bar, bar[9], market = True)
                     continue
             position.timeStopTime -= 1
 
@@ -248,7 +249,7 @@ class Tester():
                     self.closePosition(position, bar, bar[4])
                     continue
                 if position.order.orderType == -1:
-                    self.closePosition(position, bar, bar[8])
+                    self.closePosition(position, bar, bar[9])
                     continue
 
             #stops and targets (stops first)
@@ -260,10 +261,10 @@ class Tester():
                     self.closePosition(position, bar, position.order.target)
                     continue
             if position.order.orderType == -1:
-                if bar[7] <= position.order.stop <= bar[6]:
+                if bar[8] <= position.order.stop <= bar[7]:
                     self.closePosition(position, bar, position.order.stop)
                     continue
-                if bar[7] <= position.order.target <= bar[6]:
+                if bar[8] <= position.order.target <= bar[7]:
                     self.closePosition(position, bar, position.order.target)
                     continue
 
@@ -354,8 +355,8 @@ class Tester():
         #afterBars = 100
 
         #barsNum = beforeBars + afterBars + (position.closeTime - position.openTime).seconds * 60
-        secondsBeforeTrade = 60 * 8 * 60
-        secondsAfterTrade = 120 * 60
+        secondsBeforeTrade = 60 * 60
+        secondsAfterTrade = 60 * 10
         from datetime import timedelta
         data = self.getHistoryBarsByTime(instrumentName, position.openTime - timedelta(seconds=secondsBeforeTrade), position.closeTime + timedelta(seconds=secondsAfterTrade))
 
@@ -369,16 +370,16 @@ class Tester():
 
         from matplotlib.lines import Line2D
         from matplotlib.dates import date2num
-        color = 'blue'
+        color = 'red'
         if position.order.orderType is 1:
-            color='orange'
+            color='green'
 
-        candlestick(ax, data, width=0.0006, colorup='g', colordown='r')
+        candlestick(ax, data, width=0.00006, colorup='g', colordown='r')
 
         enter = Line2D(
         xdata=(date2num(position.openTime), date2num(position.closeTime)), ydata=(position.openPrice, position.closePrice),
         color=color,
-        linewidth=3,
+        linewidth=5,
         antialiased=True,
         )
 
@@ -595,8 +596,12 @@ class Tester():
             plt.title(title)
             plt.show()
 
-    def getProfitsByTimeOfDay(self, lotSizeInUsd, commissionPerPip, year = 0):
+    def getProfitsByTimeOfDay(self, lotSizeInUsd, commissionPerPip, year = 0, showPf = True):
         stat = np.zeros(24 * 4)
+
+        profits = np.zeros(24 * 4)
+        loses = np.zeros(24 * 4)
+        deals = np.zeros(24 * 4)
 
         for p in self.getClosedPositions():
             if year is not 0:
@@ -604,10 +609,42 @@ class Tester():
                     continue
             profit = (p.closePrice - p.order.price) * p.order.orderType * lotSizeInUsd - commissionPerPip
             stat[get15minBarNum(p.order.openTime)] += profit
+            if profit > 0:
+                profits[get15minBarNum(p.order.openTime)] += profit
+                deals[get15minBarNum(p.order.openTime)] += 1
+            if profit < 0:
+                loses[get15minBarNum(p.order.openTime)] += profit
+                deals[get15minBarNum(p.order.openTime)] += 1
         import matplotlib.pyplot as plt
+        #plt.plot(stat)
+        #plt.grid(color = 'b')
+        #plt.show()
+
+        plt.figure(1)
+        plt.subplot(211)
+        plt.axhline(y=0)
         plt.plot(stat)
-        plt.grid(color = 'b')
+        plt.subplot(212)
+        plt.axhline(y=0)
+        plt.plot(deals)
         plt.show()
+
+
+
+
+
+
+
+
+
+
+
+        if showPf == True:
+            pr = profits / loses
+            pr = pr * -1
+            plt.plot(pr)
+            plt.grid(color = 'b')
+            plt.show()
 
 
         r = stats.scoreatpercentile(stat, 80)

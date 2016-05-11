@@ -204,7 +204,7 @@ def pcPeroidSizeDecile(engine, samples, period, bar):
         if data[len(data) - 1 - i, 0].minute == bar[0].minute and data[len(data) - 1 - i, 0].hour == bar[0].hour:
             if len(data) - 1 - i < period:
                 return 0
-            result.append(np.max(data[len(data) - 1 - i - period:len(data) - 1 - i,6])-np.min(data[len(data) - 1 - i - period:len(data) - 1 - i,3]))
+            result.append(np.max(data[len(data) - 1 - i - period:len(data) - 1 - i,4])-np.min(data[len(data) - 1 - i - period:len(data) - 1 - i,3]))
             j += 1
             if j == samples:
                 return result
