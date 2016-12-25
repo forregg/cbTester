@@ -21,8 +21,8 @@ import quotesFromDS
 startTest = date(2010, 1, 1)
 stopTest = date(2010, 10, 10)
 
-gbpusd = loadData('/home/mage/PycharmProjects/cbTester/data/g.csv')
-eurusd = loadData('/home/mage/PycharmProjects/cbTester/data/e.csv')
+usdchf = loadData('/home/mage/PycharmProjects/cbTester/data/usdchf_1m_200516.csv_trimmed.csv')
+eurusd = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_1m_120516.csv_trimmed.csv')
 
 
 

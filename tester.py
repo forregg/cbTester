@@ -356,7 +356,7 @@ class Tester():
 
         #barsNum = beforeBars + afterBars + (position.closeTime - position.openTime).seconds * 60
         secondsBeforeTrade = 60 * 60
-        secondsAfterTrade = 60 * 10
+        secondsAfterTrade = 60
         from datetime import timedelta
         data = self.getHistoryBarsByTime(instrumentName, position.openTime - timedelta(seconds=secondsBeforeTrade), position.closeTime + timedelta(seconds=secondsAfterTrade))
 
@@ -628,16 +628,6 @@ class Tester():
         plt.axhline(y=0)
         plt.plot(deals)
         plt.show()
-
-
-
-
-
-
-
-
-
-
 
         if showPf == True:
             pr = profits / loses

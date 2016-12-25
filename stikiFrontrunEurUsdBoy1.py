@@ -8,6 +8,14 @@ from forexSessions import *
 from scipy import stats
 import calendar
 from datetime import timedelta
+from tester import Tester
+from quotesFromCsv import loadData
+from instrument import Instrument
+
+
+
+
+
 class SF(Strategy):
 #params
 
@@ -28,14 +36,52 @@ class SF(Strategy):
     def onStart(self):
         """not implemented yet"""
 
+    def getDailyRangeVola(self, barsNum, samples = 30):
+        data = self.engine.getHistoryBars(self.engine.data[0].name, 6 * 60 * 24 * (samples + 2), 0)
+        if data == []:
+            return
+
+        vola = []
+
+        for i in range(samples):
+            h = np.max(data[len(data)-1 - (i * 24 * 60 * 6) - barsNum : len(data)-1 - (i * 24 * 60 * 6),2])
+            l = np.min(data[len(data)-1 - (i * 24 * 60 * 6) - barsNum : len(data)-1 - (i * 24 * 60 * 6),3])
+            vola.append(h-l)
+
+        return vola
+
+    def getPercentileOfDailyRangeVola(self,barsNum, samples = 30):
+
+        vola = self.getDailyRangeVola(barsNum, samples)
+
+        if vola == None:
+            return
+
+        data = self.engine.getHistoryBars(self.engine.data[0].name, barsNum, 0)
+        if data == []:
+            return
+
+        pcHigh = np.max(data[:, 2])
+        pcLow = np.min(data[:, 3])
+
+        lastRangeVola = pcHigh-pcLow
+
+        return stats.percentileofscore(vola, lastRangeVola)
+
 
     def onGetStatOnPositionOpen(self, position, bar):
-        #return self.getSantimentShort(2*60, 0.0002)
-        return self.engine.getHistoryBars(self.engine.data[0].name, 6*60, 0)
+        data = self.engine.getHistoryBars(self.engine.data[0].name, 58 * 6, 0)
+        if data == []:
+            return
+        for b in data:
+            if b[0].minute == 30 and b[0].second == 10:
+                return b[2]-b[3]
+
+        return self.engine.getHistoryBars(self.engine.data[0].name, 6*70, 0)
 
 
     def onGetStatOnPositionClose(self, position, bar):
-        return self.engine.getHistoryBars(self.engine.data[0].name, 5, 0)
+        return self.engine.getHistoryBars(self.engine.data[0].name, 6*75, 0)
 
     def onBar(self, bar):
 
@@ -43,10 +89,10 @@ class SF(Strategy):
             return
 
 
-        positionTimeStop = 2*10
+        positionTimeStop = 3 * 10
         positionTimeStop = timedelta(seconds=positionTimeStop)
 
-        positionTimeStopShort = 2*10
+        positionTimeStopShort = 3 * 10
         positionTimeStopShort = timedelta(seconds=positionTimeStopShort)
 
         positions = self.engine.getPositions()
@@ -62,13 +108,13 @@ class SF(Strategy):
         #if forexSessions.isSummerTimeInLondon(bar[0]) is True:
         #    return
 
-        #if get15minBarNum(bar[0]) not in [51]:#12.00-12.15
-        #    return
+        if get15minBarNum(bar[0]) not in range(50,60):#[50,51,52]:#12.00-12.15
+            return
 
         if bar[0].minute not in [59]:#range(0,60,5)
             return
 
-        if bar[0].second not in [50]:#range(0,60,5)
+        if bar[0].second not in [40]:#range(0,60,5)
             return
 
         data = self.engine.getHistoryBars(self.engine.data[0].name, 58 * 6, 0)
@@ -86,28 +132,37 @@ class SF(Strategy):
                     tradeS = True
 
 
-        vola = [ 0.00114444,  0.00109167,  0.00112207,  0.00133776,  0.00151162,  0.00136486,
-                0.00119028,  0.00111101,  0.00114379,  0.0014608,   0.00207106,  0.00235503,
-                0.00221462,  0.0021053,   0.0019202,   0.00202878,  0.00271961,  0.00266604,
-                0.00273897,  0.00234986,  0.00189092,  0.00172452,  0.00169345,  0.0014114 ]
+        pcHigh = np.max(data[:, 7])
+        pcLow = np.min(data[:, 3])
+
+        perc = (bar[4]- pcLow)/ (pcHigh - pcLow)
+
+        v = self.getPercentileOfDailyRangeVola(58 * 6, 30)
+        v2 = self.getPercentileOfDailyRangeVola(58 * 6, 10)
 
 
+        data2 = self.engine.getHistoryBars(self.engine.data[0].name, 5 * 6, 0)
+        if data2 == []:
+            return
 
-        #if data[len(data)-1,4] - data[0, 1] > 0.002:
-        #    if tradeL == True:
-        #        self.engine.sendOrder(Order(bar[11], 1, 0, 0, 0,  1, 0, 0, market=True), bar)
+        pcHigh = np.max(data2[:, 7])
+        pcLow = np.min(data2[:, 3])
+
+        if pcHigh < bar[7] + 0.0002: pcHigh = bar[7] + 0.0002
+        if pcLow > bar[3] - 0.0002: pcLow = bar[3] - 0.0002
 
 
-        if data[len(data)-1,4] - data[0, 1] < -0.0005  * 5:
-            if tradeS == True:
+        if data[len(data)-1,4] - data[0, 1] > 0.0001 and v2 == 100:
+
+            if perc < 0.95 and perc > 0.6:
+                #if tradeL == True:
+                self.engine.sendOrder(Order(bar[11], 1, 0, 0, 0,  1, 0, 0, market=True), bar)
+
+
+        if data[len(data)-1,4] - data[0, 1] < -0.0001 and v2 == 100:
+            if perc > 0.1 and perc < 0.4:
+                #if tradeS == True:
                 self.engine.sendOrder(Order(bar[11], -1, 0, 0, 0,  1, 0, 0, market=True), bar)
-
-        #if data[len(data)-1,4] - data[0, 1] < -1 * vola[bar[0].hour + 3] * 1.5:
-        #    self.engine.sendOrder(Order(bar[11], -1, 0, 0, 0,  1, 0, 0, market=True), bar)
-
-
-
-
 
     def onStop(self):
 
@@ -122,15 +177,14 @@ class SF(Strategy):
         self.engine.showEquity(self.lotSizeInUSD, self.commissionPerPip)
         self.engine.getProfitsByTimeOfDay(self.lotSizeInUSD, self.commissionPerPip,)
 
+        self.engine.getFilterAnalyze(self.lotSizeInUSD,  self.commissionPerPip, 0, 50)
+
         for p in self.engine.getClosedPositions():
             self.engine.showTrade(p, 'EUR/USD')
 
-
-        #self.engine.getFilterAnalyze(self.lotSizeInUSD,  self.commissionPerPip, 0, 50)
-
-        #self.engine.getPointAnalyze(self.lotSizeInUSD, self.commissionPerPip, 0, longOnly=True)
-        #self.engine.getPointAnalyze(self.lotSizeInUSD, self.commissionPerPip, 0, longOnly=True, leaders=True, nOfL=40)
-        #self.engine.getPointAnalyze(self.lotSizeInUSD, self.commissionPerPip, 0, longOnly=True, loosers=True, nOfL=40)
+        self.engine.getPointAnalyze(self.lotSizeInUSD, self.commissionPerPip, 0, longOnly=True)
+        self.engine.getPointAnalyze(self.lotSizeInUSD, self.commissionPerPip, 0, longOnly=True, leaders=True, nOfL=40)
+        self.engine.getPointAnalyze(self.lotSizeInUSD, self.commissionPerPip, 0, longOnly=True, loosers=True, nOfL=40)
 
         self.engine.getPointAnalyze(self.lotSizeInUSD, self.commissionPerPip, 0, shortOnly=True)
         self.engine.getPointAnalyze(self.lotSizeInUSD, self.commissionPerPip, 0, shortOnly=True, leaders=True, nOfL=40)
@@ -155,3 +209,15 @@ class SF(Strategy):
 
 
 
+#data = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_10sec_110516.csv')
+from getHistory import getHistoryFromDB
+data = getHistoryFromDB('eurusd_10sec')
+opt = False
+
+if opt == True:
+    for opt in range(70, 100, 5):
+        strategyParams = {'pOptimization': True, 'pOpt':opt}
+        tester = Tester([Instrument('EUR/USD', data)], SF, strategyParams, getStat=True)
+else:
+    strategyParams = {'pOptimization': False}
+    tester = Tester([Instrument('eur', data)], SF, strategyParams, getStat=True)

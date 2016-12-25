@@ -7,21 +7,21 @@ from mr import Mr
 from testStrat import TestStrat
 from dukascopyEngine import DukascopyEngine
 from audnzdMRBoy import AudnzdMrBoy
-from stikiFrontrunEurUsdBoy1 import SF
+from eurusdMR import MR
 
 #engine = DukascopyEngine(['EUR/USD'], '1 Min', Mr)
 
-data = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_10sec_110516.csv')
+data = loadData('/home/mage/PycharmProjects/cbTester/data/audnzd_upto010615.csv')
 #data = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_1m_20_03_2014.csv')
 opt = False
 
 if opt == True:
-    for opt in range(1, 10, 1):
+    for opt in range(5, 10, 1):
         strategyParams = {'pOptimization': True, 'pOpt':opt}
-        tester = Tester([Instrument('EUR/USD', data)], SF, strategyParams, getStat=True)
+        tester = Tester([Instrument('EUR/USD', data)], AudnzdMrBoy, strategyParams, getStat=True)
 else:
     strategyParams = {'pOptimization': False}
-    tester = Tester([Instrument('EUR/USD', data)], SF, strategyParams, getStat=True)
+    tester = Tester([Instrument('EUR/USD', data)], AudnzdMrBoy, strategyParams, getStat=True)
 #tester = Tester([Instrument('USD/CAD', data)], UsdcadMr, getStat=True)
 exit()
 
