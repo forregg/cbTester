@@ -4,14 +4,19 @@ from psycopg2.extensions import AsIs
 defaultConnString = "host='localhost' dbname='quotes' user='me' password='Qwerty12'"
 
 def getTableName(instrument, period, depth = 5000000):
-    instrument.replace('/','')
+    instrument = instrument.replace('/','_')
     if depth != 5000000:
         return instrument +'__'+ period + '__' + str(depth)
     return instrument + '__' + period
 
-def createQuotesTable(instrument, period, depth = 5000000, connString = defaultConnString):
+def getTableName2(instrument, period, dateFrom):
+    instrument = instrument.replace('/','_')
+    dateFrom = dateFrom.replace('/','_')
+    return instrument +'__'+ period + '__' + dateFrom
+
+
+def createQuotesTable(tableName, connString = defaultConnString):
     try:
-        tableName = getTableName(instrument, period, depth)
         conn = psycopg2.connect(connString)
         cur = conn.cursor()
         cur.execute("CREATE TABLE public.%s (dateTime TIMESTAMP,"
@@ -27,7 +32,7 @@ def insertQuotes(tableName, quotes, connString = defaultConnString):
     cur = conn.cursor()
 
     s = tableName.split("__")
-    instrument = s[0]
+    instrument = s[0].replace('_','/')
     period = s[1]
 
     for quote in quotes:
@@ -54,9 +59,16 @@ def getLastQuote(tableName, connString = defaultConnString):
     else:
         return None
 
+def isTableExist(tableName, connString = defaultConnString):
+    conn = psycopg2.connect(connString)
+    cur = conn.cursor()
 
+    try:
+        cur.execute("SELECT * FROM public.%s LIMIT 10", [AsIs(tableName)]);
+    except Exception as e:
+        return False
 
-
+    return True
 
 def getAllQuotes(tableName, connString = defaultConnString):
     conn = psycopg2.connect(connString)
@@ -67,6 +79,7 @@ def getAllQuotes(tableName, connString = defaultConnString):
         #cur.execute("SELECT * FROM public.%s", [AsIs(tableName)]);
     except Exception as e:
         print(e.message)
+        return None
 
     print 'selected'
     results = cur.fetchall()

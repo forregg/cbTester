@@ -63,32 +63,22 @@ def trimFuckingHolidays(fileName):
 
 
 def getHistoryIntervalsToDB(intervals, intervalSize, instrument = 'EUR/USD', period = 'ONE_MIN'):
-
     engine = DukascopyEngine()
-
     res = engine.getHistoryBars(instrument, intervalSize, 0, 0, period, trimInstrument=True, filterWeekends=False)
     for i in range(1,intervals):
         print 'collecting %d of %d' %(i, intervals)
         newData = engine.getHistoryBars(instrument, intervalSize, i*intervalSize, 0, period, trimInstrument=True, filterWeekends=False)
         res = np.append(newData, res, axis=0)
-
     return res
 
-def createTables():
-    import postgresql as db
-    #db.createQuotesTable('eurusd', '1min')
-    db.createQuotesTable('eurusd', '10sec')
-
-
-
-def updateQuotes(maxQuotes = 100):
-
+def updateQuotesFromDukascopy(instrument, period, depth = 5000000):
     intervalSize = 3000
-    intervals = 2100
+    intervals = int(depth/intervalSize)
 
     import postgresql as db
-    #tableName = "eurusd_1min"
-    tableName = "eurusd_10sec"
+    tableName = db.getTableName(instrument, period, depth)
+    if db.isTableExist(tableName) is False:
+        db.createQuotesTable(instrument, period, depth)
     lastQuote = db.getLastQuote(tableName)
     if lastQuote is not None:
         lastQuoteTime = lastQuote[0]
@@ -96,14 +86,13 @@ def updateQuotes(maxQuotes = 100):
         lastQuoteTime = datetime(2000,1,1)
 
     lastQuoteReachedFlag = False
-
     engine = DukascopyEngine()
     for i in range(0, intervals):
         print 'collecting %d of %d' %(i+1, intervals)
         if lastQuoteReachedFlag is True:
             continue
         res = []
-        newData = engine.getHistoryBars('EUR/USD', intervalSize, i*intervalSize, 0, 'TEN_SECS', trimInstrument=True, filterWeekends=False)
+        newData = engine.getHistoryBars(instrument, intervalSize, i*intervalSize, 0, period, trimInstrument=True, filterWeekends=False)
         for row in newData:
             if row[0] > lastQuoteTime:
                 res.append(row)
@@ -111,32 +100,23 @@ def updateQuotes(maxQuotes = 100):
                 lastQuoteReachedFlag = True
         db.insertQuotes(tableName, res)
 
-    exit()
-    print lastQuote
-    data = getHistoryIntervalsToDB(10, 10, instrument='EUR/USD', period='ONE_MIN')
-    db.insertQuotes("eurusd_1min", data)
-    print 'done'
-
-
-def getHistoryFromDB(tableName, updateQuotesFromDB=False, updateQuotesFromSource=False):
-
-    if updateQuotesFromSource is True:
-
-
+def getHistoryFromDB(tableName, updateQuotesFromDB=False):
     if updateQuotesFromDB is True:
         import postgresql as db
         data = np.array(db.getAllQuotes(tableName))
-        data.dump(tableName+'.npy')
+        data.dump('data/'+tableName+'.npy')
         print str(datetime.now()) + ' data dumped'
 
     try:
-        data = np.load(tableName + '.npy')
+        data = np.load('data/'+tableName + '.npy')
         print str(datetime.now()) + ' data loaded'
-    except IOError:
-        import postgresql as db
-        data = np.array(db.getAllQuotes(tableName))
-        data.dump(tableName+'.npy')
-        print str(datetime.now()) + ' data dumped'
+    except IOError as e:
+        print e
+        if updateQuotesFromDB is False:
+            import postgresql as db
+            data = np.array(db.getAllQuotes(tableName))
+            data.dump('data/'+tableName+'.npy')
+            print str(datetime.now()) + ' data dumped'
     return data
 
 

@@ -1,5 +1,5 @@
 class Strategy:
-    def __init__(self, engine):
+    def __init__(self, engine, name =''):
         self.engine = engine
         self.name = ''
 

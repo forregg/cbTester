@@ -210,8 +210,11 @@ class SF(Strategy):
 
 
 #data = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_10sec_110516.csv')
+import postgresql as db
 from getHistory import getHistoryFromDB
-data = getHistoryFromDB('eurusd_10sec')
+
+tableName = db.getTableName2('EUR/USD', 'TEN_SECS', "01/01/2014")
+data = getHistoryFromDB(tableName)
 opt = False
 
 if opt == True:

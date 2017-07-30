@@ -6,13 +6,14 @@ from position import *
 from strategy import Strategy
 
 
-class DukascopyEngine():
-    def __init__(self, instruments, period, strategyClass, strategyParams=None, getStat=False):
+class DukascopyEngine:
+    def connect(self, instruments, period, strategyClass, strategyParams=None, getStat=False):
         self.name = 'Dukascopy'
         self.instruments = instruments
         self.period = period
         self.getStat = getStat
-        self.strategy = strategyClass(self, strategyParams)
+        self.strategy = strategyClass(self)
+        self.strategyParams = strategyParams
         self.strategyClass = strategyClass
 
         self.slippage = 0
@@ -20,7 +21,7 @@ class DukascopyEngine():
         self.start()
 
     def __init__(self):
-    #    """for use getHistory without runing strategy"""
+        """for use getHistory without runing strategy"""
         self.strategy = Strategy(self)
 
 
@@ -167,7 +168,7 @@ class DukascopyEngine():
                               price=positionString[4], stop=positionString[5],
                               target=positionString[6], timeStopTime=timeStopTime, openTime=orderOpenTime),
                         openTime=positionOpenTime))
-            return positions
+        return positions
 
     def getHistoryBars(self, instrument, barsBefore, shift, barsAfter=0, period='ONE_MIN', trimInstrument = False, filterWeekends = True):
         context = zmq.Context()
@@ -175,6 +176,65 @@ class DukascopyEngine():
         socket.connect("tcp://127.0.0.1:43002")
         command = ['getHistory', self.strategy.name, instrument, period, str(barsBefore), str(shift),
                    str(barsAfter), str(filterWeekends)]  # command, strategyName, intrument, period, barsBefore, shift, barsAfter
+        command = '--'.join(command)
+        socket.send(command)
+        message = socket.recv()
+
+        bars = []
+
+
+        if message != '':
+            barsStrings = message.split('-+-')
+            for barStrings in barsStrings:
+                bar = barStrings.split('--')
+
+                bar[1] = datetime.utcfromtimestamp(float(bar[1]) / 1e3)
+                bar = bar[1:]
+                bar = np.array(bar)
+                bar[1:11] = bar[1:11].astype(np.float32, copy=False)
+                bar[1:11] = np.around(bar[1:11].astype(np.double),5)
+                if trimInstrument == True:
+                    bar = bar[:11]
+                bars.append(bar)
+            bars = np.array(bars)
+
+        return bars
+
+    def getHistoryFromDateUntilNow(self, instrument, period, dateFrom, trimInstrument = False):
+        context = zmq.Context()
+        socket = context.socket(zmq.REQ)
+        socket.connect("tcp://127.0.0.1:43002")
+        command = ['getHistoryFromDateUntilNow', self.strategy.name, instrument, period, str(dateFrom)]  # command, strategyName, intrument, period, barsBefore, shift, barsAfter
+        command = '--'.join(command)
+        socket.send(command)
+        message = socket.recv()
+        print message
+
+        bars = []
+
+
+        if message != '':
+            barsStrings = message.split('-+-')
+            for barStrings in barsStrings:
+                bar = barStrings.split('--')
+
+                bar[1] = datetime.utcfromtimestamp(float(bar[1]) / 1e3)
+                bar = bar[1:]
+                bar = np.array(bar)
+                bar[1:11] = bar[1:11].astype(np.float32, copy=False)
+                bar[1:11] = np.around(bar[1:11].astype(np.double),5)
+                if trimInstrument == True:
+                    bar = bar[:11]
+                bars.append(bar)
+            bars = np.array(bars)
+
+        return bars
+
+    def getHistoryFromDateToDate(self, instrument, period, dateFrom, dateTo, trimInstrument = False):
+        context = zmq.Context()
+        socket = context.socket(zmq.REQ)
+        socket.connect("tcp://127.0.0.1:43002")
+        command = ['getHistoryFromDateToDate', self.strategy.name, instrument, period, str(dateFrom), str(dateTo)]  # command, strategyName, intrument, period, barsBefore, shift, barsAfter
         command = '--'.join(command)
         socket.send(command)
         message = socket.recv()
