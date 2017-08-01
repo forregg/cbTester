@@ -26,6 +26,7 @@ class Tester():
         self.point = point
 
     def start(self):
+        self.strategy.onStart()
 
         d = np.array([])
 

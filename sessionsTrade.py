@@ -11,19 +11,20 @@ from datetime import timedelta
 from tester import Tester
 from quotesFromCsv import loadData
 from instrument import Instrument
+import pytz
 
 
 
 
 
-class SF(Strategy):
+class st(Strategy):
 #params
 
     def __init__(self, engine, params):
         self.name = 'eurusdsfr'
         self.engine = engine
         self.lotSizeInUSD = 1000000
-        self.commissionPerPip = self.lotSizeInUSD / 1000000 * 25
+        self.commissionPerPip = 0#self.lotSizeInUSD / 1000000 * 25
         self.pOptimization = False
         if params != None:
             if 'pOptimization' in params:
@@ -34,12 +35,7 @@ class SF(Strategy):
         getInstrumentStat(engine)
 
     def onStart(self):
-        """
-        for instrument in self.engine.data:
-            print instrument.data[:,1]
-            plt.plot(instrument.data[:,1])
-            plt.show()
-        """
+
         """not implemented yet"""
 
     def getDailyRangeVola(self, barsNum, samples = 30):
@@ -76,13 +72,6 @@ class SF(Strategy):
 
 
     def onGetStatOnPositionOpen(self, position, bar):
-        data = self.engine.getHistoryBars(self.engine.data[0].name, 58 * 6, 0)
-        if data == []:
-            return
-        for b in data:
-            if b[0].minute == 30 and b[0].second == 10:
-                return b[2]-b[3]
-
         return self.engine.getHistoryBars(self.engine.data[0].name, 6*70, 0)
 
 
@@ -90,90 +79,30 @@ class SF(Strategy):
         return self.engine.getHistoryBars(self.engine.data[0].name, 6*75, 0)
 
     def onBar(self, bar):
+        tzL = pytz.timezone('Europe/London')
+        londonTime = tzL.fromutc(bar[0])
+        tzNY = pytz.timezone('America/New_York')
+        nyTime = tzNY.fromutc(bar[0])
 
-        if bar[2] == bar[3] and bar[5] == 0:
-            return
+        if londonTime.hour == 16 and londonTime.minute == 0:
+            positions = self.engine.getPositions()
+            if len(positions) > 0:
+                for p in reversed(positions):
+                    self.engine.closePosition(p, bar)
+        if nyTime.hour == 17 and nyTime.minute == 0:
+            positions = self.engine.getPositions()
+            if len(positions) > 0:
+                for p in reversed(positions):
+                    self.engine.closePosition(p, bar)
 
+        if londonTime.hour == 16 and londonTime.minute == 0:
+            self.engine.sendOrder(Order(bar[11], -1, 0, 0, 0,  1, 0, 0, market=True), bar)
+        if londonTime.hour == 8 and nyTime.minute == 0:
+            self.engine.sendOrder(Order(bar[11], 1, 0, 0, 0,  1, 0, 0, market=True), bar)
 
-        positionTimeStop = 3 * 10
-        positionTimeStop = timedelta(seconds=positionTimeStop)
+        #print londonTime
+        #print nyTime
 
-        positionTimeStopShort = 3 * 10
-        positionTimeStopShort = timedelta(seconds=positionTimeStopShort)
-
-        positions = self.engine.getPositions()
-        if len(positions) > 0:
-            for p in reversed(positions):
-                if p.order.orderType == 1:
-                    if p.openTime + positionTimeStop <= bar[0]:
-                        self.engine.closePosition(p, bar)
-                else:
-                    if p.openTime + positionTimeStopShort <= bar[0]:
-                        self.engine.closePosition(p, bar)
-
-        #if forexSessions.isSummerTimeInLondon(bar[0]) is True:
-        #    return
-
-        if get15minBarNum(bar[0]) not in range(50,60):#[50,51,52]:#12.00-12.15
-            return
-
-        if bar[0].minute not in [59]:#range(0,60,5)
-            return
-
-        if bar[0].second not in [40]:#range(0,60,5)
-            return
-
-
-
-        data = self.engine.getHistoryBars(self.engine.data[0].name, 58 * 6, 0)
-
-        if data == []:
-            return
-
-
-        tradeL = False
-        tradeS = False
-
-        for b in data:
-            if b[0].minute == 30 and b[0].second == 10:
-                if b[4]-b[1] > 0.0001:
-                    tradeL = True
-
-                if b[4]-b[1] < -0.0001:
-                    tradeS = True
-
-
-        pcHigh = np.max(data[:, 7])
-        pcLow = np.min(data[:, 3])
-
-        perc = (bar[4]- pcLow)/ (pcHigh - pcLow)
-
-        v = self.getPercentileOfDailyRangeVola(58 * 6, 30)
-        v2 = self.getPercentileOfDailyRangeVola(58 * 6, 10)
-
-
-        data2 = self.engine.getHistoryBars(self.engine.data[0].name, 5 * 6, 0)
-        if data2 == []:
-            return
-
-        pcHigh = np.max(data2[:, 7])
-        pcLow = np.min(data2[:, 3])
-
-        if pcHigh < bar[7] + 0.0002: pcHigh = bar[7] + 0.0002
-        if pcLow > bar[3] - 0.0002: pcLow = bar[3] - 0.0002
-
-
-        if data[len(data)-1,4] - data[0, 1] > 0.0001 and v2 == 100:
-
-            if perc < 0.95 and perc > 0.6:
-                #if tradeL == True:
-                self.engine.sendOrder(Order(bar[11], 1, 0, 0, 0,  1, 0, 0, market=True), bar)
-
-
-        if data[len(data)-1,4] - data[0, 1] < -0.0001 and v2 == 100:
-            if perc > 0.1 and perc < 0.4:
-                #if tradeS == True:
-                self.engine.sendOrder(Order(bar[11], -1, 0, 0, 0,  1, 0, 0, market=True), bar)
 
     def onStop(self):
 
@@ -216,22 +145,17 @@ class SF(Strategy):
         self.engine.getProfitsByDayOfWeek(self.lotSizeInUSD, self.commissionPerPip)
 
 
-
-
-
-
-#data = loadData('/home/mage/PycharmProjects/cbTester/data/eurusd_10sec_110516.csv')
 import postgresql as db
 from getHistory import getHistoryFromDB
 
-tableName = db.getTableName2('EUR/USD', 'TEN_SECS', "01/01/2014")
+tableName = db.getTableName2('EUR/USD', 'ONE_MIN', "01/01/2012")
 data = getHistoryFromDB(tableName)
 opt = False
 
 if opt == True:
     for opt in range(70, 100, 5):
         strategyParams = {'pOptimization': True, 'pOpt':opt}
-        tester = Tester([Instrument('EUR/USD', data)], SF, strategyParams, getStat=True)
+        tester = Tester([Instrument('EUR/USD', data)], st, strategyParams, getStat=True)
 else:
     strategyParams = {'pOptimization': False}
-    tester = Tester([Instrument('EUR/USD', data)], SF, strategyParams, getStat=True)
+    tester = Tester([Instrument('EUR/USD', data)], st, strategyParams, getStat=True)
