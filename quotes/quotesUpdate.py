@@ -6,12 +6,15 @@ import sys
 import numpy as np
 
 instrumentsPediodStartDate = [
-    ['EUR/USD', 'ONE_MIN', "01/01/2012"],
-    ['AUD/USD', 'ONE_MIN', "01/01/2012"],
-    ['NZD/USD', 'ONE_MIN', "01/01/2012"],
-    ['AUD/NZD', 'ONE_MIN', "01/01/2012"],
-    ['GBP/USD', 'ONE_MIN', "01/01/2012"],
-    ['EUR/USD', 'TEN_SECS', "01/01/2014"]]
+    #['EUR/USD', 'ONE_MIN', "01/01/2012"],
+    #['AUD/USD', 'ONE_MIN', "01/01/2012"],
+    #['NZD/USD', 'ONE_MIN', "01/01/2012"],
+    #['AUD/NZD', 'ONE_MIN', "01/01/2012"],
+    #['GBP/USD', 'ONE_MIN', "01/01/2012"],
+    #['EUR/USD', 'ONE_MIN', "01/01/2007"],
+    ['USD/CHF', 'ONE_MIN', "01/06/2017"],
+    ['USD/JPY', 'ONE_MIN', "01/01/2012"]];
+    #['EUR/USD', 'TEN_SECS', "01/01/2014"]]
 
 def main():
     print 'started: '+ sys.argv[0] +' ' + str(datetime.utcnow())
@@ -24,9 +27,12 @@ def main():
 
         tableName = db.getTableName2(instrument, period, dateFrom)
         if db.isTableExist(tableName) is False:
-            db.createQuotesTable(tableName)
             quotes = getHistoryDayByDay(instrument, period, dateFrom, dateTo)
-            db.insertQuotes(tableName, quotes)
+            if quotes != []:
+                db.createQuotesTable(tableName)
+                db.insertQuotes(tableName, quotes)
+            else:
+                print 'no data'
         else:
             lastQuote = db.getLastQuote(tableName)
             quotes = getHistoryDayByDay(instrument, period, lastQuote[0].strftime('%d/%m/%Y %H:%M:%S'), dateTo)
@@ -96,7 +102,7 @@ def checkIntegrity(instrumentPediodStartDate):
             print '------------------------'
         prevquote = quote
 
-#main()
-for instrumentPediodStartDate in instrumentsPediodStartDate:
-    print str(instrumentPediodStartDate) + ' checking..'
-    checkIntegrity(instrumentPediodStartDate)
+main()
+#for instrumentPediodStartDate in instrumentsPediodStartDate:
+#    print str(instrumentPediodStartDate) + ' checking..'
+#    checkIntegrity(instrumentPediodStartDate)

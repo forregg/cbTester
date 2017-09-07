@@ -243,10 +243,11 @@ class DukascopyEngine:
 
 
         if message != '':
+            if message.find('JFException') != -1:
+                return message
             barsStrings = message.split('-+-')
             for barStrings in barsStrings:
                 bar = barStrings.split('--')
-
                 bar[1] = datetime.utcfromtimestamp(float(bar[1]) / 1e3)
                 bar = bar[1:]
                 bar = np.array(bar)
